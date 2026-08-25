@@ -1,0 +1,50 @@
+.health-check {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.health-card {
+  width: min(100%, 560px);
+  padding: 40px;
+  box-sizing: border-box;
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.health-card h1 {
+  margin: 20px 0 12px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #15803d;
+  background: #dcfce7;
+  border-radius: 999px;
+}
+
+.description {
+  margin-bottom: 24px;
+}
+
+.tech-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tech-stack span {
+  padding: 6px 12px;
+  font-size: 14px;
+  color: var(--text-h);
+  background: var(--code-bg);
+  border-radius: 6px;
+}
