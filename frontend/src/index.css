@@ -109,3 +109,15 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+nav {
+  margin-bottom: 2rem;
+}
+
+nav a {
+  text-decoration: none;
+}
+
+nav a.active {
+  font-weight: 700;
+  text-decoration: underline;
+}
