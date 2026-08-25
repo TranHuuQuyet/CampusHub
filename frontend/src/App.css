@@ -1,11 +1,19 @@
-.health-check {
+.app-layout {
   min-height: 100svh;
+}
+
+.app-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.app-main {
+  min-height: calc(100svh - 57px);
   display: grid;
   place-items: center;
   padding: 24px;
   box-sizing: border-box;
 }
-
 .health-card {
   width: min(100%, 560px);
   padding: 40px;
@@ -47,4 +55,19 @@
   color: var(--text-h);
   background: var(--code-bg);
   border-radius: 6px;
+}
+
+
+.not-found {
+  text-align: center;
+}
+
+.not-found h1 {
+  margin-bottom: 8px;
+  font-size: 64px;
+}
+
+.not-found a {
+  display: inline-block;
+  margin-top: 16px;
 }
