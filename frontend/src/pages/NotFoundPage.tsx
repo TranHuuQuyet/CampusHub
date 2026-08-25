@@ -1,14 +1,12 @@
-import { Link } from 'react-router'
+import { Link } from 'react-router-dom'
 
 function NotFoundPage() {
   return (
-    <section className="not-found">
+    <main>
       <h1>404</h1>
-
-      <p>The page you are looking for does not exist.</p>
-
-      <Link to="/">Back to CampusHub</Link>
-    </section>
+      <p>Page not found.</p>
+      <Link to="/">Back to Home</Link>
+    </main>
   )
 }
 
