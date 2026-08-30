@@ -1,3 +1,4 @@
+// Hien thi trang chu cua CampusHub.
 function HomePage() {
   return (
     <main>

@@ -1,114 +1,140 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 import type { LoginRequest } from '../types/auth'
+import {
+  validateLogin,
+  type LoginErrors,
+} from '../utils/authValidation'
 
-type LoginErrors = {
-  email?: string
-  password?: string
+type LoginLocationState = {
+  from?: string
 }
 
+// Hien thi form, kiem tra du lieu va xu ly yeu cau dang nhap.
 function LoginForm() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { login } = useAuth()
+
   const [formData, setFormData] = useState<LoginRequest>({
     email: '',
     password: '',
   })
 
-  // bat va xu ly loi khi client nhap sai data
   const [errors, setErrors] = useState<LoginErrors>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [serverError, setServerError] = useState<string | null>(null)
 
-  function validateForm() {
-    const newErrors: LoginErrors = {}
+  // Cap nhat truong dang nhap va xoa loi cu cua truong do.
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    const { name, value } = event.target
 
-    if (!formData.email.trim()) {
-      // bat buoc nhap email
-      newErrors.email = 'Email is required.'
-    } else if (!formData.email.includes('@')) {
-      // email phai co ky tu @
-      newErrors.email = 'Please enter a valid email.'
-    }
+    setFormData((currentData) => ({
+      ...currentData,
+      [name]: value,
+    }))
 
-    if (!formData.password) {
-      // bat buoc nhap password
-      newErrors.password = 'Password is required.'
-    } else if (formData.password.length < 8) {
-      // chieu dai password toi thieu la 8 ky tu
-      newErrors.password = 'Password must be at least 8 characters.'
-    }
+    setErrors((currentErrors) => ({
+      ...currentErrors,
+      [name]: undefined,
+    }))
 
-    // cap nhat danh sach loi
-    setErrors(newErrors)
-
-    // neu khong co loi nao thi form hop le
-    return Object.keys(newErrors).length === 0
+    setServerError(null)
   }
 
-  // xu ly event submit form
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    // ngan trinh duyet reload lai trang khi submit form
+  // Kiem tra du lieu, goi ham dang nhap va dieu huong khi thanh cong.
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const isValid = validateForm()
-
-    if (!isValid) {
-      // neu form khong hop le thi dung lai
+    if (isSubmitting) {
       return
     }
 
-    // du lieu hop le -> tam thoi in ra console
-    // sau nay se thay bang viec goi API backend
-    console.log('Login data:', formData)
+    const newErrors = validateLogin(formData)
+    setErrors(newErrors)
+
+    if (Object.keys(newErrors).length > 0) {
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      setServerError(null)
+
+      await login(formData)
+      const state = location.state as LoginLocationState | null
+      const destination = state?.from?.startsWith('/') ? state.from : '/'
+      navigate(destination, { replace: true })
+    } catch (error) {
+      setServerError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to sign in. Please try again.',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} noValidate>
+      {serverError && <p role="alert">{serverError}</p>}
+
       <div>
         <label htmlFor="email">Email</label>
 
-        {/* o nhap email */}
         <input
           id="email"
+          name="email"
           type="email"
           value={formData.email}
-          onChange={(event) =>
-            setFormData({
-              // giu lai cac gia tri cu trong formData
-              ...formData,
-
-              // cap nhat email moi
-              email: event.target.value,
-            })
-          }
+          maxLength={254}
+          autoComplete="email"
+          onChange={handleChange}
+          aria-invalid={Boolean(errors.email)}
+          aria-describedby={errors.email ? 'email-error' : undefined}
         />
 
-        {/* neu email co loi thi hien thi loi */}
-        {errors.email && <p>{errors.email}</p>}
+        {errors.email && (
+          <p id="email-error" role="alert">
+            {errors.email}
+          </p>
+        )}
       </div>
 
       <div>
         <label htmlFor="password">Password</label>
 
-        {/* o nhap password */}
         <input
           id="password"
+          name="password"
           type="password"
           value={formData.password}
-          onChange={(event) =>
-            setFormData({
-              // giu lai cac gia tri cu trong formData
-              ...formData,
-
-              // cap nhat password moi
-              password: event.target.value,
-            })
+          maxLength={128}
+          autoComplete="current-password"
+          onChange={handleChange}
+          aria-invalid={Boolean(errors.password)}
+          aria-describedby={
+            errors.password ? 'password-error' : undefined
           }
         />
 
-        {/* neu password co loi thi hien thi loi */}
-        {errors.password && <p>{errors.password}</p>}
+        {errors.password && (
+          <p id="password-error" role="alert">
+            {errors.password}
+          </p>
+        )}
       </div>
 
-      {/* submit form */}
-      <button type="submit">Login</button>
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Logging in...' : 'Login'}
+      </button>
+
+      <p>
+        Do not have an account? <Link to="/register">Register</Link>
+      </p>
     </form>
   )
 }

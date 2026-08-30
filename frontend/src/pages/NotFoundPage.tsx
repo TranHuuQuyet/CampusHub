@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 
+// Hien thi thong bao khi duong dan khong ton tai.
 function NotFoundPage() {
   return (
     <main>
