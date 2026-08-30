@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import type { LoginRequest } from '../types/auth'
 import {
   validateLogin,
@@ -10,6 +10,7 @@ import {
 
 function LoginForm() {
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const [formData, setFormData] = useState<LoginRequest>({
     email: '',
@@ -53,7 +54,6 @@ function LoginForm() {
     try {
       setIsSubmitting(true)
       setServerError(null)
-      const { login } = useAuth()
       await login(formData)
       navigate('/')
     } catch (error) {
