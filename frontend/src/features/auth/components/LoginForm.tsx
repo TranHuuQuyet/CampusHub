@@ -1,22 +1,15 @@
 import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import type { LoginRequest } from '../types/auth'
 import {
   validateLogin,
   type LoginErrors,
 } from '../utils/authValidation'
 
-type LoginLocationState = {
-  from?: string
-}
-
-// Hien thi form, kiem tra du lieu va xu ly yeu cau dang nhap.
 function LoginForm() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const { login } = useAuth()
 
   const [formData, setFormData] = useState<LoginRequest>({
     email: '',
@@ -27,7 +20,6 @@ function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
-  // Cap nhat truong dang nhap va xoa loi cu cua truong do.
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target
 
@@ -44,7 +36,6 @@ function LoginForm() {
     setServerError(null)
   }
 
-  // Kiem tra du lieu, goi ham dang nhap va dieu huong khi thanh cong.
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
@@ -62,11 +53,9 @@ function LoginForm() {
     try {
       setIsSubmitting(true)
       setServerError(null)
-
+      const { login } = useAuth()
       await login(formData)
-      const state = location.state as LoginLocationState | null
-      const destination = state?.from?.startsWith('/') ? state.from : '/'
-      navigate(destination, { replace: true })
+      navigate('/')
     } catch (error) {
       setServerError(
         error instanceof Error
@@ -131,10 +120,6 @@ function LoginForm() {
       <button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Logging in...' : 'Login'}
       </button>
-
-      <p>
-        Do not have an account? <Link to="/register">Register</Link>
-      </p>
     </form>
   )
 }
