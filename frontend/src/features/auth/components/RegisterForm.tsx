@@ -1,11 +1,11 @@
-import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import type { RegisterRequest } from '../types/auth'
 import {
-  type RegisterErrors,
   validateRegister,
+  type RegisterErrors,
 } from '../utils/authValidation'
 
 // Hien thi form, kiem tra du lieu va xu ly yeu cau dang ky.
@@ -119,7 +119,7 @@ function RegisterForm() {
           name="password"
           type="password"
           value={formData.password}
-          maxLength={128}
+          maxLength={72}
           autoComplete="new-password"
           onChange={handleChange}
           aria-invalid={Boolean(errors.password)}
@@ -139,7 +139,7 @@ function RegisterForm() {
           name="confirmPassword"
           type="password"
           value={formData.confirmPassword}
-          maxLength={128}
+          maxLength={72}
           autoComplete="new-password"
           onChange={handleChange}
           aria-invalid={Boolean(errors.confirmPassword)}

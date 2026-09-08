@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import type { LoginRequest } from '../types/auth'
@@ -101,7 +101,7 @@ function LoginForm() {
           name="password"
           type="password"
           value={formData.password}
-          maxLength={128}
+          maxLength={72}
           autoComplete="current-password"
           onChange={handleChange}
           aria-invalid={Boolean(errors.password)}

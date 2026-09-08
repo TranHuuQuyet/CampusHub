@@ -22,8 +22,8 @@ export function validateLogin(data: LoginRequest): LoginErrors {
     errors.password = 'Password is required.'
   } else if (data.password.length < 8) {
     errors.password = 'Password must be at least 8 characters.'
-  } else if (data.password.length > 128) {
-    errors.password = 'Password is too long.'
+  } else if (data.password.length > 72) {
+    errors.password = 'Password must not exceed 72 characters.'
   }
 
   return errors

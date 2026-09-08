@@ -7,7 +7,84 @@ import type {
 
 const API_URL = import.meta.env.VITE_API_BASE_URL
 
-// Doc thong bao loi tu backend va tao loi than thien cho giao dien.
+/*
+ * Doc gia tri cua cookie theo ten.
+ *
+ * Backend Spring Security luu CSRF token trong:
+ *
+ * XSRF-TOKEN
+ *
+ * Cookie nay KHONG HttpOnly de React co the doc.
+ *
+ * JSESSIONID van la HttpOnly va React khong can doc.
+ */
+function getCookie(name: string): string | null {
+  const cookies = document.cookie.split(';')
+
+  for (const cookie of cookies) {
+    const [cookieName, ...cookieValueParts] = cookie.trim().split('=')
+
+    if (cookieName === name) {
+      return decodeURIComponent(cookieValueParts.join('='))
+    }
+  }
+
+  return null
+}
+
+/*
+ * =========================================================
+ * CSRF
+ * =========================================================
+ *
+ * Truoc cac request thay doi du lieu:
+ *
+ * POST
+ * PUT
+ * PATCH
+ * DELETE
+ *
+ * React goi:
+ *
+ * GET /api/v1/csrf
+ *
+ * Backend se tao / refresh:
+ *
+ * XSRF-TOKEN cookie
+ *
+ * Sau do React doc cookie va gui lai qua:
+ *
+ * X-XSRF-TOKEN header
+ */
+async function getCsrfToken(): Promise<string> {
+  const response = await fetch(`${API_URL}/csrf`, {
+    method: 'GET',
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    throw new Error('Unable to initialize security token.')
+  }
+
+  /*
+   * Khong dung token trong JSON response.
+   *
+   * SPA flow cua CampusHub doc raw token
+   * tu XSRF-TOKEN cookie.
+   */
+  const token = getCookie('XSRF-TOKEN')
+
+  if (!token) {
+    throw new Error('Security token was not provided by the server.')
+  }
+
+  return token
+}
+
+/*
+ * Doc thong bao loi tu backend
+ * va tao loi than thien cho giao dien.
+ */
 async function createApiError(response: Response): Promise<Error> {
   try {
     const data = (await response.json()) as Partial<ApiError>
@@ -16,7 +93,9 @@ async function createApiError(response: Response): Promise<Error> {
       return new Error(data.message)
     }
   } catch {
-    // Bo qua khi backend khong tra ve JSON hop le.
+    /*
+     * Bo qua neu backend khong tra ve JSON hop le.
+     */
   }
 
   if (response.status === 429) {
@@ -26,16 +105,32 @@ async function createApiError(response: Response): Promise<Error> {
   return new Error('Something went wrong. Please try again.')
 }
 
-// Gui thong tin dang nhap va nhan lai nguoi dung da xac thuc.
+/*
+ * =========================================================
+ * LOGIN
+ * =========================================================
+ *
+ * 1. Lay CSRF token.
+ * 2. Gui credentials.
+ * 3. Browser luu JSESSIONID.
+ *
+ * Sau login thanh cong backend se rotate CSRF token.
+ */
 export async function login(
   credentials: LoginRequest,
 ): Promise<AuthResponse> {
+  const csrfToken = await getCsrfToken()
+
   const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
+
     headers: {
       'Content-Type': 'application/json',
+      'X-XSRF-TOKEN': csrfToken,
     },
+
     credentials: 'include',
+
     body: JSON.stringify({
       email: credentials.email.trim(),
       password: credentials.password,
@@ -57,16 +152,26 @@ export async function login(
   return response.json() as Promise<AuthResponse>
 }
 
-// Gui thong tin dang ky va nhan lai nguoi dung moi.
+/*
+ * =========================================================
+ * REGISTER
+ * =========================================================
+ */
 export async function register(
   data: RegisterRequest,
 ): Promise<AuthResponse> {
+  const csrfToken = await getCsrfToken()
+
   const response = await fetch(`${API_URL}/auth/register`, {
     method: 'POST',
+
     headers: {
       'Content-Type': 'application/json',
+      'X-XSRF-TOKEN': csrfToken,
     },
+
     credentials: 'include',
+
     body: JSON.stringify({
       fullName: data.fullName.trim(),
       email: data.email.trim(),
@@ -85,9 +190,20 @@ export async function register(
   return response.json() as Promise<AuthResponse>
 }
 
-// Lay nguoi dung hien tai tu cookie phien khi tai lai trang.
+/*
+ * =========================================================
+ * GET CURRENT USER
+ * =========================================================
+ *
+ * GET khong can gui CSRF token.
+ *
+ * Browser gui JSESSIONID thong qua:
+ *
+ * credentials: 'include'
+ */
 export async function getCurrentUser(): Promise<AuthResponse | null> {
   const response = await fetch(`${API_URL}/auth/me`, {
+    method: 'GET',
     credentials: 'include',
   })
 
@@ -102,10 +218,32 @@ export async function getCurrentUser(): Promise<AuthResponse | null> {
   return response.json() as Promise<AuthResponse>
 }
 
-// Yeu cau backend huy phien dang nhap hien tai.
+/*
+ * =========================================================
+ * LOGOUT
+ * =========================================================
+ *
+ * Login thanh cong rotate CSRF token.
+ *
+ * Vi vay truoc logout ta lay token moi.
+ *
+ * POST logout:
+ *
+ * - invalidate HttpSession
+ * - xoa JSESSIONID
+ * - clear XSRF-TOKEN
+ * - HTTP 204
+ */
 export async function logout(): Promise<void> {
+  const csrfToken = await getCsrfToken()
+
   const response = await fetch(`${API_URL}/auth/logout`, {
     method: 'POST',
+
+    headers: {
+      'X-XSRF-TOKEN': csrfToken,
+    },
+
     credentials: 'include',
   })
 
