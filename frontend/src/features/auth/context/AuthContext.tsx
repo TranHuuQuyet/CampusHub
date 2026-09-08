@@ -9,8 +9,8 @@ import {
   logout as logoutRequest,
   register as registerRequest,
 } from '../services/authService'
-import { AuthContext } from './authContextDefinition'
 import type { LoginRequest, RegisterRequest, User } from '../types/auth'
+import { AuthContext } from './authContextDefinition'
 
 type AuthProviderProps = {
   children: ReactNode
@@ -57,10 +57,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(response.user)
   }
 
-  // Dang ky tai khoan va luu nguoi dung neu backend tao phien ngay lap tuc.
+  // Dang ky tai khoan moi.
+  //
+  // Backend hien tai chi tao user trong database.
+  // Register KHONG tao HttpSession va KHONG dang nhap tu dong.
+  //
+  // Vi vay frontend khong duoc set user vao auth state
+  // sau khi register thanh cong.
   async function register(data: RegisterRequest) {
-    const response = await registerRequest(data)
-    setUser(response.user)
+    await registerRequest(data)
   }
 
   // Dang xuat tren backend va xoa nguoi dung khoi trang thai dung chung.
