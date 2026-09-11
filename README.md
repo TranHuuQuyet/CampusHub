@@ -1,4 +1,5 @@
-# CampusHub
+
+    # CampusHub
 
 An open-source student community platform.
 
