@@ -133,3 +133,4 @@ jobs:
             --config p/owasp-top-ten \
             --error \
             --severity ERROR
+run: mvn org.owasp:dependency-check-maven:12.1.0:check --batch-mode --file backend/pom.xml -DfailBuildOnCVSS=7 -DsuppressionFile=backend/suppression.xml
