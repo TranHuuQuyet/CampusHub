@@ -91,33 +91,11 @@ jobs:
           restore-keys: |
             owasp-dependency-check-${{ runner.os }}-
 
-      - name: Test NVD API connectivity
-        env:
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: |
-          if [ -z "$NVD_API_KEY" ]; then
-            echo "NVD_API_KEY is not available"
-            exit 1
-          fi
-
-          status=$(curl -sS \
-            -o /dev/null \
-            -w "%{http_code}" \
-            -H "apiKey: $NVD_API_KEY" \
-            "https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=1&startIndex=0")
-
-          echo "NVD API HTTP status: $status"
-
-          test "$status" = "200"
-
       - name: Dependency scan (OWASP Dependency-Check)
-        env:
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
           mvn org.owasp:dependency-check-maven:12.1.0:check \
             --batch-mode \
             --file backend/pom.xml \
-            -DnvdApiKeyEnvironmentVariable=NVD_API_KEY \
             -DfailBuildOnCVSS=7 \
             -DsuppressionFile=backend/suppression.xml \
             -DknownExploitedEnabled=false \
