@@ -14,10 +14,15 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   frontend:
     name: Frontend Lint, Build & Dependency Scan
     runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
 
     defaults:
       run:
@@ -47,8 +52,9 @@ jobs:
         run: npm audit --audit-level=high
 
   backend:
-    name: Backend Test, Build & Dependency Scan
+    name: Backend Test & Build
     runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
 
     services:
       mysql:
@@ -83,19 +89,65 @@ jobs:
       - name: Test and build backend
         run: mvn --batch-mode verify --file backend/pom.xml
 
-      - name: Cache OWASP Dependency-Check NVD data
-        uses: actions/cache@v4
+  backend-dependency-scan:
+    name: Backend Dependency Scan (OWASP Dependency-Check)
+    runs-on: ubuntu-latest
+
+    env:
+      ODC_DATA_DIR: ${{ github.workspace }}/.odc-data
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v6
         with:
-          path: ~/.m2/repository/org/owasp/dependency-check-data
-          key: owasp-dependency-check-${{ runner.os }}-${{ hashFiles('backend/pom.xml') }}
+          distribution: temurin
+          java-version: 21
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Restore NVD data cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.ODC_DATA_DIR }}
+          key: owasp-dc-v1-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
-            owasp-dependency-check-${{ runner.os }}-
+            owasp-dc-v1-${{ runner.os }}-
+
+      # Bước 1: chỉ cập nhật database NVD
+      - name: Update NVD database
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+          MAVEN_OPTS: -Xmx3g
+        run: |
+          if [ -z "$NVD_API_KEY" ]; then
+            echo "::warning::NVD_API_KEY is not available. Dependency-Check will run without an API key."
+          fi
+
+          mvn org.owasp:dependency-check-maven:12.1.0:update-only \
+            --batch-mode \
+            --file backend/pom.xml \
+            -DdataDirectory="$ODC_DATA_DIR" \
+            -DnvdApiKeyEnvironmentVariable=NVD_API_KEY
+
+      - name: Save NVD data cache
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.ODC_DATA_DIR }}
+          key: owasp-dc-v1-${{ runner.os }}-${{ github.run_id }}
 
       - name: Dependency scan (OWASP Dependency-Check)
+        env:
+          MAVEN_OPTS: -Xmx3g
         run: |
           mvn org.owasp:dependency-check-maven:12.1.0:check \
             --batch-mode \
             --file backend/pom.xml \
+            -DdataDirectory="$ODC_DATA_DIR" \
+            -DautoUpdate=false \
             -DfailBuildOnCVSS=7 \
             -DsuppressionFile=backend/suppression.xml \
             -DknownExploitedEnabled=false \
@@ -108,10 +160,12 @@ jobs:
         with:
           name: dependency-check-report
           path: backend/target/dependency-check-report.html
+          if-no-files-found: warn
 
   secret-scan:
     name: Secret Scanning (Gitleaks)
     runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
 
     permissions:
       contents: read
@@ -132,6 +186,7 @@ jobs:
   sast-scan:
     name: SAST (Semgrep)
     runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
     container:
       image: semgrep/semgrep:1.86.0
 
