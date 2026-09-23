@@ -14,10 +14,15 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   frontend:
     name: Frontend - Lint & Build
     runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
 
     defaults:
       run:
@@ -25,10 +30,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 24
           cache: npm
@@ -46,6 +51,7 @@ jobs:
   backend:
     name: Backend - Test & Build
     runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
 
     services:
       mysql:
@@ -67,10 +73,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
 
       - name: Setup Java 21
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6
         with:
           distribution: temurin
           java-version: 21
@@ -79,3 +85,144 @@ jobs:
 
       - name: Test and build backend
         run: mvn --batch-mode verify --file backend/pom.xml
+
+  frontend-dependency-scan:
+    name: Frontend Dependency Scan (npm audit)
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Dependency scan (npm audit)
+        run: npm audit --audit-level=high
+
+  backend-dependency-scan:
+    name: Backend Dependency Scan (OWASP Dependency-Check)
+    runs-on: ubuntu-latest
+
+    env:
+      ODC_DATA_DIR: ${{ github.workspace }}/.odc-data
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Setup Java 21
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Restore NVD data cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ env.ODC_DATA_DIR }}
+          key: owasp-dc-v1-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            owasp-dc-v1-${{ runner.os }}-
+
+      - name: Update NVD database
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+          MAVEN_OPTS: -Xmx3g
+        run: |
+          if [ -z "$NVD_API_KEY" ]; then
+            echo "::warning::NVD_API_KEY is not available. Dependency-Check will run without an API key."
+          fi
+
+          mvn org.owasp:dependency-check-maven:12.1.0:update-only \
+            --batch-mode \
+            --file backend/pom.xml \
+            -DdataDirectory="$ODC_DATA_DIR" \
+            -DnvdApiKeyEnvironmentVariable=NVD_API_KEY
+
+      - name: Save NVD data cache
+        if: success()
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ env.ODC_DATA_DIR }}
+          key: owasp-dc-v1-${{ runner.os }}-${{ github.run_id }}
+
+      - name: Dependency scan (OWASP Dependency-Check)
+        env:
+          MAVEN_OPTS: -Xmx3g
+        run: |
+          mvn org.owasp:dependency-check-maven:12.1.0:check \
+            --batch-mode \
+            --file backend/pom.xml \
+            -DdataDirectory="$ODC_DATA_DIR" \
+            -DautoUpdate=false \
+            -DfailBuildOnCVSS=7 \
+            -DsuppressionFile=backend/suppression.xml \
+            -DknownExploitedEnabled=false \
+            -DossindexAnalyzerEnabled=false \
+            -Dformat=HTML
+
+      - name: Upload dependency-check report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dependency-check-report
+          path: backend/target/dependency-check-report.html
+          if-no-files-found: warn
+
+  secret-scan:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  sast-scan:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    container:
+      image: semgrep/semgrep:1.86.0
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config p/security-audit \
+            --config p/java \
+            --config p/javascript \
+            --config p/owasp-top-ten \
+            --error \
+            --severity ERROR
+

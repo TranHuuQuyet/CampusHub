@@ -1,0 +1,12 @@
+title = "CampusHub Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist for mock/test credentials and example environment files only"
+paths = [
+  '''backend/src/test/.*''',
+  '''frontend/\.env\.example''',
+  '''backend/\.env\.example'''
+]
