@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   frontend:
-    name: Frontend Lint, Build & Dependency Scan
+    name: Frontend - Lint & Build
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
 
@@ -48,11 +48,8 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      - name: Dependency scan (npm audit)
-        run: npm audit --audit-level=high
-
   backend:
-    name: Backend Test & Build
+    name: Backend - Test & Build
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
 
@@ -89,6 +86,32 @@ jobs:
       - name: Test and build backend
         run: mvn --batch-mode verify --file backend/pom.xml
 
+  frontend-dependency-scan:
+    name: Frontend Dependency Scan (npm audit)
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Dependency scan (npm audit)
+        run: npm audit --audit-level=high
+
   backend-dependency-scan:
     name: Backend Dependency Scan (OWASP Dependency-Check)
     runs-on: ubuntu-latest
@@ -116,7 +139,6 @@ jobs:
           restore-keys: |
             owasp-dc-v1-${{ runner.os }}-
 
-      # Bước 1: chỉ cập nhật database NVD
       - name: Update NVD database
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
@@ -203,3 +225,4 @@ jobs:
             --config p/owasp-top-ten \
             --error \
             --severity ERROR
+
