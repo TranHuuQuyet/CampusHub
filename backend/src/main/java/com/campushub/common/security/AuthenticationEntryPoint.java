@@ -1,4 +1,4 @@
-package com.campushub.security;
+package com.campushub.common.security;
 
 public class AuthenticationEntryPoint {
     
