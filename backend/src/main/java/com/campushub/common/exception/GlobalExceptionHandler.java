@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
             "CONFLICT",
             ex.getMessage()
         );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error); // header + 
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error); // header + body 
     }
 
     // 3. Handle 400 - Bad Request
@@ -52,28 +52,6 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error); // header + body
-    }
-
-    // 4. Handle 401 - Unauthorized
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ApiErrorResponse> handleUnauthorized(UnauthorizedException ex) {
-        ApiErrorResponse error = ApiErrorResponse.of(
-            HttpStatus.UNAUTHORIZED.value(),
-            "UNAUTHORIZED",
-            ex.getMessage()
-        );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error); // header + body
-    }
-
-    // 5. Handle 403 - Forbidden
-    @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<ApiErrorResponse> handleForbidden(ForbiddenException ex) {
-        ApiErrorResponse error = ApiErrorResponse.of(
-            HttpStatus.FORBIDDEN.value(),
-            "FORBIDDEN",
-            ex.getMessage()
-        );
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error); // header + body
     }
 
     // 4. Handle 400 - Bean Validation Failures (@Valid)
@@ -93,6 +71,16 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error); // header + body
     }
+    // //6. Handle 403 - Access Denied
+    // @ExceptionHandler(AccessDeniedException.class)
+    // public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+    //     ApiErrorResponse error = ApiErrorResponse.of(
+    //         HttpStatus.FORBIDDEN.value(),
+    //         "ACCESS_DENIED",
+    //         ex.getMessage()
+    //     );
+    //     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error); // header + body
+    // }
 
     // 5. Handle 500 - Unexpected Server Errors (Information Hiding)
     @ExceptionHandler(Exception.class)

@@ -1,12 +1,11 @@
 package com.campushub.common.exception;
 
-public class UnauthorizedException extends RuntimeException
-{
-    public UnauthorizedException(String message) 
+public class AccessDeniedException extends RuntimeException {
+    public AccessDeniedException(String message) 
     {
         super(message);
     }
-    public UnauthorizedException(String message, Throwable cause)
+    public AccessDeniedException(String message, Throwable cause)
     {
         super(message, cause); // super used to pass message error to parent class to throwable
     }
