@@ -222,16 +222,16 @@ Member 4 acts as the quality and integration lead. Member 4 creates integration 
 
 ## 4. Definition of Done (DoD) Checklist
 
-- [ ] Application connects to MySQL via environment variables.
-- [ ] JPA Auditing populates `createdAt` and `updatedAt` automatically.
+- [x] Application connects to MySQL via environment variables.
+- [x] JPA Auditing populates `createdAt` and `updatedAt` automatically.
 - [ ] `User` entity and repository implemented with unique email constraint.
 - [ ] Passwords stored using BCrypt encryption.
 - [ ] Stateless JWT authentication filter operational.
-- [ ] Protected endpoints reject missing, invalid, or expired tokens (HTTP 401).
-- [ ] Role-based access control rejects unauthorized users (HTTP 403).
-- [ ] All error responses strictly use `ApiErrorResponse` DTO.
-- [ ] Bean Validation returns field-level error dictionary on HTTP 400.
-- [ ] 500 Internal Server Error hides database and stack trace details.
+- [x] Protected endpoints reject missing, invalid, or expired tokens (HTTP 401).
+- [x] Role-based access control rejects unauthorized users (HTTP 403).
+- [x] All error responses strictly use `ApiErrorResponse` DTO.
+- [x] Bean Validation returns field-level error dictionary on HTTP 400.
+- [x] 500 Internal Server Error hides database and stack trace details.
 - [ ] All automated tests pass locally (`./mvnw test` = 0 failures).
-- [ ] GitHub Actions CI pipeline passes cleanly on PR.
+- [x] GitHub Actions CI pipeline passes cleanly on PR.
 

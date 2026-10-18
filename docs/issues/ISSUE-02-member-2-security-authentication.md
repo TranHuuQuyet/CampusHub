@@ -110,9 +110,9 @@ Implement the reusable security foundation for:
 ---
 
 ## Definition of Done
-- [ ] `SecurityConfig` compiles with stateless filter chain and custom 401/403 handlers.
-- [ ] Unauthenticated requests receive HTTP 401 with standard `ApiErrorResponse`.
-- [ ] Unauthorized requests receive HTTP 403 with standard `ApiErrorResponse`.
+- [x] `SecurityConfig` compiles with stateless filter chain and custom 401/403 handlers.
+- [x] Unauthenticated requests receive HTTP 401 with standard `ApiErrorResponse`.
+- [x] Unauthorized requests receive HTTP 403 with standard `ApiErrorResponse`.
 - [ ] Passwords stored using BCrypt hash.
 - [ ] Valid JWT permits access; invalid or expired token is rejected.
 - [ ] Full Maven build passes cleanly (`./mvnw test`).

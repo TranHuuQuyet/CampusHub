@@ -109,12 +109,12 @@ Maintain and expand [`docs/backend-conventions.md`](../backend-conventions.md):
 ---
 
 ## Definition of Done
-- [ ] Global exception handling is centralized.
-- [ ] Validation errors return a consistent frontend-friendly format with field-level dictionary.
-- [ ] 400, 404, 409, and 500 behaviors are clearly defined.
-- [ ] Stack traces and database internals are not exposed to clients.
-- [ ] Reusable application exception approach exists.
-- [ ] Backend conventions are documented in `docs/backend-conventions.md`.
+- [x] Global exception handling is centralized.
+- [x] Validation errors return a consistent frontend-friendly format with field-level dictionary.
+- [x] 400, 404, 409, and 500 behaviors are clearly defined.
+- [x] Stack traces and database internals are not exposed to clients.
+- [x] Reusable application exception approach exists.
+- [x] Backend conventions are documented in `docs/backend-conventions.md`.
 - [ ] Redundant duplicate exception classes are deleted.
 - [ ] Unit tests pass cleanly.
 - [ ] PR submitted to `developV2`.

@@ -90,8 +90,8 @@ Implement the reusable persistence foundation for:
 ---
 
 ## Definition of Done
-- [ ] Application connects to MySQL using environment variables.
-- [ ] `BaseEntity` automatically populates audit timestamps on insert and update.
+- [x] Application connects to MySQL using environment variables.
+- [x] `BaseEntity` automatically populates audit timestamps on insert and update.
 - [ ] `User` entity and `UserRepository` are implemented and verified.
 - [ ] Database-level unique constraint on `email` is verified.
 - [ ] Automated tests pass (`./mvnw test`).

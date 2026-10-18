@@ -87,9 +87,9 @@ Implement the quality and verification foundation for:
 ## Definition of Done
 - [ ] `GlobalExceptionHandlerTest` passes with 0 failures.
 - [ ] `SecurityErrorHandlingTest` passes and asserts standard `ApiErrorResponse` for 401 and 403.
-- [ ] Public endpoint `/api/health` passes without authentication.
+- [x] Public endpoint `/api/health` passes without authentication.
 - [ ] Full backend test suite passes locally (`./mvnw test` = 0 failures).
-- [ ] GitHub Actions CI pipeline passes cleanly on pull request.
+- [x] GitHub Actions CI pipeline passes cleanly on pull request.
 - [ ] PR created and reviewed against `developV2`.
 
 ---
