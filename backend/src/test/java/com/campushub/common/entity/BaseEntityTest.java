@@ -10,6 +10,7 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Import;
 
 import com.campushub.config.JpaConfig;
+import com.campushub.user.model.User;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-@EntityScan(basePackageClasses = BaseEntityTest.class)
+@EntityScan(basePackageClasses = {BaseEntityTest.class, User.class})
 class BaseEntityTest {
 
     @Autowired

@@ -54,6 +54,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error); // header + body
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnauthorized(UnauthorizedException ex) {
+        ApiErrorResponse error = ApiErrorResponse.of(
+            HttpStatus.UNAUTHORIZED.value(),
+            "UNAUTHORIZED",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiErrorResponse> handleForbidden(ForbiddenException ex) {
+        ApiErrorResponse error = ApiErrorResponse.of(
+            HttpStatus.FORBIDDEN.value(),
+            "FORBIDDEN",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
     // 4. Handle 400 - Bean Validation Failures (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
