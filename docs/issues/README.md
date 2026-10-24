@@ -29,6 +29,7 @@ flowchart TD
 ---
 
 ## 🛠️ Team Guidelines
+- All team members must adhere to the approved [Design Contract v1.1](../DESIGN_CONTRACT.md).
 - All branches branch from `developV2` and open PRs targeting `developV2`.
 - Keep commits focused and prefixed according to the suggested commit conventions.
 - Refer to [`../../plan.md`](../../plan.md) for overall milestone timelines and [`../../status.md`](../../status.md) for live progress.
