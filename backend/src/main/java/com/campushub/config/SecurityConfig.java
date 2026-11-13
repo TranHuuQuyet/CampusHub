@@ -2,6 +2,7 @@ package com.campushub.config;
 
 import com.campushub.common.security.RestAccessDeniedHandler;
 import com.campushub.common.security.RestAuthenticationEntryPoint;
+import com.campushub.security.UserPrincipal;
 import com.campushub.security.jwt.JwtAuthenticationFilter;
 import com.campushub.user.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
@@ -53,15 +54,7 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
         return email -> userRepository.findByEmail(email)
-                .map(this::toUserDetails)
+                .map(UserPrincipal::from)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
-
-    private UserDetails toUserDetails(com.campushub.user.model.User user) {
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPasswordHash())
-                .authorities("ROLE_" + user.getRole().name())
-                .build();
     }
 }

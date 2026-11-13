@@ -12,6 +12,7 @@ import com.campushub.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 import java.util.Map;
@@ -36,6 +37,7 @@ public class AuthService {
         this.expirationMs = expirationMs;
     }
 
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
         String email = normalizeEmail(request.email());
 
@@ -53,6 +55,7 @@ public class AuthService {
         return issueToken(userRepository.save(user));
     }
 
+    @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         String email = normalizeEmail(request.email());
         User user = userRepository.findByEmail(email)
